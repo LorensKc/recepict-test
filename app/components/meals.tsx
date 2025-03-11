@@ -2,7 +2,7 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 
 export default function Meals(props) {
-    const { meals } = props;
+    const { meals, isLoading, error } = props;
     const [selectedMeals, setSelectedMeals] = useState<any[]>(
     JSON.parse(localStorage.getItem("selectedMeals") || "[]")
     );
@@ -19,6 +19,9 @@ export default function Meals(props) {
         }
         });
     };
+
+    if (isLoading) return <p>Завантаження...</p>;
+    if (error || !meals) return <p>Помилка завантаження</p>;
 
   return (
     <div

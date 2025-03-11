@@ -17,7 +17,7 @@ export default function HomePage() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [debouncedSearchTerm]);
+  }, [debouncedSearchTerm, selectedCategory]);
  
   const {
     data: meals,
@@ -36,13 +36,12 @@ export default function HomePage() {
     placeholderData: keepPreviousData
   });
 
-  if (isLoading) return <p>Завантаження...</p>;
-  if (error || !meals) return <p>Помилка завантаження</p>;
 
-  const categories = [
+
+  const categories = meals ? [
     "Всі",
     ...new Set(meals.map((meal: any) => meal.strCategory)),
-  ];
+  ]: [];
 
   const filteredMeals =
     selectedCategory === "Всі"
@@ -87,7 +86,7 @@ export default function HomePage() {
         </select>
       </label>
 
-      <Meals meals={paginatedMeals} />
+      <Meals meals={paginatedMeals} isLoading={isLoading} error={error}/>
 
       {/* Пагінація */}
       {totalPages > 1 && (
