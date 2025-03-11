@@ -22,12 +22,37 @@ export default function HomePage() {
     queryFn: fetchMeals,
   });
 
+  const [selectedCategory, setSelectedCategory] = useState("Всі");
+
+  const categories = [
+    "Всі",
+    ...new Set(meals?.map((meal: any) => meal.strCategory)),
+  ];
+
+  const filteredMeals =
+    selectedCategory === "Всі"
+      ? meals
+      : meals.filter((meal: any) => meal.strCategory === selectedCategory);
+
   if (isLoading) return <p>Завантаження...</p>;
   if (error) return <p>Помилка завантаження</p>;
 
   return (
     <div>
       <h1>Всі рецепти</h1>
+      <label>
+        Фільтрувати за категорією:
+        <select
+          value={selectedCategory}
+          onChange={(e) => setSelectedCategory(e.target.value)}
+        >
+          {categories.map((category) => (
+            <option key={category} value={category}>
+              {category}
+            </option>
+          ))}
+        </select>
+      </label>
       <div
         style={{
           display: "grid",
@@ -35,7 +60,7 @@ export default function HomePage() {
           gap: "20px",
         }}
       >
-        {meals.map((meal: any) => (
+        {filteredMeals.map((meal: any) => (
           <div
             key={meal.idMeal}
             style={{ border: "1px solid #ccc", padding: "10px" }}

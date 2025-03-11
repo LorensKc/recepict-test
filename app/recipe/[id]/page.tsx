@@ -1,7 +1,8 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { useRouter } from "next/router";
+// import { useRouter } from "next/router";
+// import { Image } from "next/image";
 
 const fetchMealById = async (id: string) => {
   const res = await fetch(
