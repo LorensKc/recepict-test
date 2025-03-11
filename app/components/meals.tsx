@@ -1,27 +1,32 @@
+"use client";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 
-export default function Meals(props) {
-    const { meals, isLoading, error } = props;
-    const [selectedMeals, setSelectedMeals] = useState<any[]>(
-    JSON.parse(localStorage.getItem("selectedMeals") || "[]")
-    );
-    useEffect(() => {
+export default function Meals(props: any) {
+  const { meals, isLoading, error } = props;
+  const [selectedMeals, setSelectedMeals] = useState<any[]>(
+    []
+  );
+  useEffect(() => {
+    const selected = JSON.parse(localStorage.getItem("selectedMeals") || "[]");
+    setSelectedMeals(selected);
+  }, [])
+  useEffect(() => {
     localStorage.setItem("selectedMeals", JSON.stringify(selectedMeals));
-    }, [selectedMeals]);
-    const toggleMealSelection = (meal: any) => {
-        setSelectedMeals((prev) => {
-        const exists = prev.some((m) => m.idMeal === meal.idMeal);
-        if (exists) {
-            return prev.filter((m) => m.idMeal !== meal.idMeal);
-        } else {
-            return [...prev, meal];
-        }
-        });
-    };
+  }, [selectedMeals]);
+  const toggleMealSelection = (meal: any) => {
+    setSelectedMeals((prev) => {
+      const exists = prev.some((m) => m.idMeal === meal.idMeal);
+      if (exists) {
+        return prev.filter((m) => m.idMeal !== meal.idMeal);
+      } else {
+        return [...prev, meal];
+      }
+    });
+  };
 
-    if (isLoading) return <p>Завантаження...</p>;
-    if (error || !meals) return <p>Помилка завантаження</p>;
+  if (isLoading) return <p>Завантаження...</p>;
+  if (error || !meals) return <p>Помилка завантаження</p>;
 
   return (
     <div

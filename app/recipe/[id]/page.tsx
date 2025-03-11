@@ -10,7 +10,7 @@ const fetchMealById = async (id: string) => {
   return data.meals ? data.meals[0] : null;
 };
 
-export default function RecipePage({ params }: { params: { id: string } }) {
+export default function RecipePage({ params }: any) {
   const {
     data: meal,
     isLoading,

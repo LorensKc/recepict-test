@@ -78,7 +78,7 @@ export default function HomePage() {
           value={selectedCategory}
           onChange={(e) => setSelectedCategory(e.target.value)}
         >
-          {categories.map((category) => (
+          {categories.map((category: any) => (
             <option key={category} value={category}>
               {category}
             </option>
