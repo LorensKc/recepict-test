@@ -1,9 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function SelectedRecipesPage() {
   const [selectedMeals, setSelectedMeals] = useState<any[]>([]);
+
+  useEffect(() => {
+    const storedMeals = localStorage.getItem("selectedMeals");
+    if (storedMeals) {
+      setSelectedMeals(JSON.parse(storedMeals));
+    }
+  }, []);
 
   return (
     <div>

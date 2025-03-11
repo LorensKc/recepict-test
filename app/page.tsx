@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
+
+const ITEMS_PER_PAGE = 6;
 
 const fetchMeals = async () => {
   const res = await fetch(
@@ -23,10 +25,21 @@ export default function HomePage() {
   });
 
   const [selectedCategory, setSelectedCategory] = useState("Всі");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [selectedMeals, setSelectedMeals] = useState<any[]>(
+    JSON.parse(localStorage.getItem("selectedMeals") || "[]")
+  );
+
+  useEffect(() => {
+    localStorage.setItem("selectedMeals", JSON.stringify(selectedMeals));
+  }, [selectedMeals]);
+
+  if (isLoading) return <p>Завантаження...</p>;
+  if (error || !meals) return <p>Помилка завантаження</p>;
 
   const categories = [
     "Всі",
-    ...new Set(meals?.map((meal: any) => meal.strCategory)),
+    ...new Set(meals.map((meal: any) => meal.strCategory)),
   ];
 
   const filteredMeals =
@@ -34,12 +47,32 @@ export default function HomePage() {
       ? meals
       : meals.filter((meal: any) => meal.strCategory === selectedCategory);
 
-  if (isLoading) return <p>Завантаження...</p>;
-  if (error) return <p>Помилка завантаження</p>;
+  const totalPages = Math.ceil((filteredMeals?.length || 0) / ITEMS_PER_PAGE);
+  const startIdx = (currentPage - 1) * ITEMS_PER_PAGE;
+  const paginatedMeals =
+    filteredMeals?.slice(startIdx, startIdx + ITEMS_PER_PAGE) || [];
+
+  const handlePageChange = (page: number) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
+
+  const toggleMealSelection = (meal: any) => {
+    setSelectedMeals((prev) => {
+      const exists = prev.some((m) => m.idMeal === meal.idMeal);
+      if (exists) {
+        return prev.filter((m) => m.idMeal !== meal.idMeal);
+      } else {
+        return [...prev, meal];
+      }
+    });
+  };
 
   return (
     <div>
       <h1>Всі рецепти</h1>
+
       <label>
         Фільтрувати за категорією:
         <select
@@ -53,6 +86,7 @@ export default function HomePage() {
           ))}
         </select>
       </label>
+
       <div
         style={{
           display: "grid",
@@ -60,7 +94,7 @@ export default function HomePage() {
           gap: "20px",
         }}
       >
-        {filteredMeals.map((meal: any) => (
+        {paginatedMeals.map((meal: any) => (
           <div
             key={meal.idMeal}
             style={{ border: "1px solid #ccc", padding: "10px" }}
@@ -70,9 +104,52 @@ export default function HomePage() {
             <p>Категорія: {meal.strCategory}</p>
             <p>Країна: {meal.strArea}</p>
             <Link href={`/recipe/${meal.idMeal}`}>Детальніше</Link>
+            <button onClick={() => toggleMealSelection(meal)}>
+              {selectedMeals.some((m) => m.idMeal === meal.idMeal)
+                ? "Видалити"
+                : "Вибрати"}
+            </button>
           </div>
         ))}
       </div>
+
+      {/* Пагінація */}
+      {totalPages > 1 && (
+        <div style={{ marginTop: "20px", textAlign: "center" }}>
+          <button
+            disabled={currentPage === 1}
+            onClick={() => handlePageChange(currentPage - 1)}
+          >
+            ◀
+          </button>
+
+          {Array.from({ length: totalPages }, (_, i) => i + 1)
+            .filter((page) => page <= 7 || page === totalPages)
+            .map((page, index, arr) => (
+              <span key={page}>
+                <button
+                  onClick={() => handlePageChange(page)}
+                  disabled={page === currentPage}
+                  style={{
+                    fontWeight: page === currentPage ? "bold" : "normal",
+                  }}
+                >
+                  {page}
+                </button>
+                {index === arr.length - 2 && page !== totalPages - 1 && (
+                  <span> ... </span>
+                )}
+              </span>
+            ))}
+
+          <button
+            disabled={currentPage === totalPages}
+            onClick={() => handlePageChange(currentPage + 1)}
+          >
+            ▶
+          </button>
+        </div>
+      )}
     </div>
   );
 }
