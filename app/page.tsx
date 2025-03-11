@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 
@@ -8,7 +9,7 @@ const fetchMeals = async () => {
     "https://www.themealdb.com/api/json/v1/1/search.php?s="
   );
   const data = await res.json();
-  return data.meals;
+  return data.meals || [];
 };
 
 export default function HomePage() {
@@ -26,28 +27,23 @@ export default function HomePage() {
 
   return (
     <div>
-      <h1>Список рецептів</h1>
+      <h1>Всі рецепти</h1>
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
+          gridTemplateColumns: "repeat(3, 1fr)",
           gap: "20px",
         }}
       >
-        {meals?.map((meal: any) => (
+        {meals.map((meal: any) => (
           <div
             key={meal.idMeal}
-            style={{
-              border: "1px solid #ccc",
-              padding: "10px",
-              textAlign: "center",
-            }}
+            style={{ border: "1px solid #ccc", padding: "10px" }}
           >
-            <img src={meal.strMealThumb} alt={meal.strMeal} width={150} />
+            <img src={meal.strMealThumb} alt={meal.strMeal} width="100%" />
             <h3>{meal.strMeal}</h3>
-            <p>
-              {meal.strCategory} - {meal.strArea}
-            </p>
+            <p>Категорія: {meal.strCategory}</p>
+            <p>Країна: {meal.strArea}</p>
             <Link href={`/recipe/${meal.idMeal}`}>Детальніше</Link>
           </div>
         ))}
