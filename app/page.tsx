@@ -1,38 +1,40 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
-import Link from "next/link";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
+import { useDebounce } from "@uidotdev/usehooks";
+import Meals from "./components/meals";
 
 const ITEMS_PER_PAGE = 6;
 
-const fetchMeals = async () => {
-  const res = await fetch(
-    "https://www.themealdb.com/api/json/v1/1/search.php?s="
-  );
-  const data = await res.json();
-  return data.meals || [];
-};
+
 
 export default function HomePage() {
+  const [search, setSearch] = useState("");
+  const debouncedSearchTerm = useDebounce(search, 300);
+  const [selectedCategory, setSelectedCategory] = useState("Всі");
+  const [currentPage, setCurrentPage] = useState(1);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedSearchTerm]);
+ 
   const {
     data: meals,
     isLoading,
     error,
   } = useQuery({
-    queryKey: ["meals"],
-    queryFn: fetchMeals,
+    queryKey: ["meals", debouncedSearchTerm],
+    queryFn: async () => {
+      const res = await fetch(
+        "https://www.themealdb.com/api/json/v1/1/search.php?s=" +
+          debouncedSearchTerm
+      );
+      const data = await res.json();
+      return data.meals || [];
+    },
+    placeholderData: keepPreviousData
   });
-
-  const [selectedCategory, setSelectedCategory] = useState("Всі");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [selectedMeals, setSelectedMeals] = useState<any[]>(
-    JSON.parse(localStorage.getItem("selectedMeals") || "[]")
-  );
-
-  useEffect(() => {
-    localStorage.setItem("selectedMeals", JSON.stringify(selectedMeals));
-  }, [selectedMeals]);
 
   if (isLoading) return <p>Завантаження...</p>;
   if (error || !meals) return <p>Помилка завантаження</p>;
@@ -58,21 +60,19 @@ export default function HomePage() {
     }
   };
 
-  const toggleMealSelection = (meal: any) => {
-    setSelectedMeals((prev) => {
-      const exists = prev.some((m) => m.idMeal === meal.idMeal);
-      if (exists) {
-        return prev.filter((m) => m.idMeal !== meal.idMeal);
-      } else {
-        return [...prev, meal];
-      }
-    });
-  };
+  // const handleSearch = (e) => setSearch(e.target.value);
 
   return (
     <div>
       <h1>Всі рецепти</h1>
-
+      <input
+        id="search"
+        type="text"
+        spellCheck="false"
+        placeholder="Search a Title"
+        value={search || ""}
+        onChange={(e) => setSearch(e.target.value)}
+      />
       <label>
         Фільтрувати за категорією:
         <select
@@ -87,31 +87,7 @@ export default function HomePage() {
         </select>
       </label>
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(3, 1fr)",
-          gap: "20px",
-        }}
-      >
-        {paginatedMeals.map((meal: any) => (
-          <div
-            key={meal.idMeal}
-            style={{ border: "1px solid #ccc", padding: "10px" }}
-          >
-            <img src={meal.strMealThumb} alt={meal.strMeal} width="100%" />
-            <h3>{meal.strMeal}</h3>
-            <p>Категорія: {meal.strCategory}</p>
-            <p>Країна: {meal.strArea}</p>
-            <Link href={`/recipe/${meal.idMeal}`}>Детальніше</Link>
-            <button onClick={() => toggleMealSelection(meal)}>
-              {selectedMeals.some((m) => m.idMeal === meal.idMeal)
-                ? "Видалити"
-                : "Вибрати"}
-            </button>
-          </div>
-        ))}
-      </div>
+      <Meals meals={paginatedMeals} />
 
       {/* Пагінація */}
       {totalPages > 1 && (

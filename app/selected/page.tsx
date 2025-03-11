@@ -45,7 +45,11 @@ export default function SelectedRecipesPage() {
               style={{ borderBottom: "1px solid #ccc", padding: "10px" }}
             >
               <h3>{meal.strMeal}</h3>
-              <img src={meal.strMealThumb} alt={meal.strMeal} width={100} />
+              <img
+                src={meal.strMealThumb}
+                alt={meal.strMeal}
+                width={100}
+              />
             </div>
           ))}
 
